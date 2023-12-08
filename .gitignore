@@ -9,6 +9,8 @@ venv
 /config.py
 .python-version
 
+myresrc/
+docker-compose-dev.yaml
 # for runtime file
 /data
 *.pyc
