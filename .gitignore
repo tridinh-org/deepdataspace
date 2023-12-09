@@ -10,7 +10,7 @@ venv
 .python-version
 
 myresrc/
-
+deepdataspace/server/static/
 docker-compose-dev.yaml
 # for runtime file
 /data
