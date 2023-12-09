@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "author": "zhuyuanhao",
+  "scripts": {
+    "build": "max build",
+    "build:inner": "max build",
+    "dev": "max dev",
+    "dev:build": "max dev & sleep 10; kill $!",
+    "format": "prettier --cache --write .",
+    "lint": "max lint",
+    "precommit": "lint-staged --quiet",
+    "preview": "PUBLIC_PATH=/page/ max build && max preview --port 8001",
+    "setup": "max setup",
+    "start": "npm run dev",
+    "test": "jest --no-cache --coverage",
+    "test:snapshot": "jest --no-cache --coverage --u"
+  },
+  "dependencies": {
+    "copy-to-clipboard": "^3.3.3",
+    "dds-components": "workspace:^",
+    "dds-hooks": "workspace:^",
+    "dds-utils": "workspace:^",
+    "react-masonry-component": "^6.3.0",
+    "react-resize-detector": "^7.1.2"
+  },
+  "devDependencies": {}
+}

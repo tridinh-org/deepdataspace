@@ -24,9 +24,4 @@ export default defineConfig({
       }
     `,
   ],
-  monorepoRedirect: {
-    srcDir: ['src', 'libs', 'dist'],
-    peerDeps: true,
-  },
-  esbuildMinifyIIFE: true,
 });

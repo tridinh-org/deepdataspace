@@ -1,16 +1,15 @@
 import React, { useMemo } from 'react';
 import { useModel } from '@umijs/max';
-import { usePageModelLifeCycle } from 'dds-hooks';
+import usePageModelLifeCycle from '@/hooks/usePageModelLifeCycle';
 import { PageContainer } from '@ant-design/pro-components';
-import { List, Spin } from 'antd';
+import { List, Pagination, Spin } from 'antd';
 import Masonry from 'react-masonry-component';
 import Header from './components/Header';
 import FlagToolsBar from './components/FlagToolsBar';
-import { AnnotateView, AnnotatePreview } from 'dds-components/Annotator';
-import { DynamicPagination } from 'dds-components';
+import Preview from '@/components/Preview';
 import { ReactComponent as FlagIcon } from '@/assets/svg/flag.svg';
-import { IMG_FLAG, IMG_FLAG_COLOR } from '@/constants';
-import { doubleImgList } from '@/utils/datasets';
+import { IMG_FLAG, IMG_FLAG_COLOR, IMG_PAGE_SIZE_OPTIONS } from '@/constants';
+import { doubleImgList } from '@/utils/annotation';
 import styles from './index.less';
 import { useSize } from 'ahooks';
 
@@ -26,8 +25,7 @@ const Page: React.FC = () => {
     onPageContentLoaded,
     onPreviewIndexChange,
     exitPreview,
-    displayObjectsFilter,
-    getCustomObjectStyles,
+    renderAnnotationImage,
   } = useModel('dataset.common');
   const {
     onPageDidMount,
@@ -107,19 +105,12 @@ const Page: React.FC = () => {
                       height: flagTools ? (itemWidth * 3) / 4 : 'auto',
                     }}
                   >
-                    <AnnotateView
-                      categories={pageData.filters.categories}
-                      data={item}
-                      wrapWidth={itemWidth}
-                      wrapHeight={flagTools ? (itemWidth * 3) / 4 : undefined}
-                      minHeight={(itemWidth * 3) / 4}
-                      objectsFilter={displayObjectsFilter}
-                      getCustomObjectStyles={getCustomObjectStyles}
-                      displayOptionsResult={displayOptionsResult}
-                      displayAnnotationType={
-                        pageState.filterValues.displayAnnotationType
-                      }
-                    />
+                    {renderAnnotationImage({
+                      wrapWidth: itemWidth,
+                      wrapHeight: flagTools ? (itemWidth * 3) / 4 : undefined,
+                      minHeight: (itemWidth * 3) / 4,
+                      data: item,
+                    })}
                   </div>
                   {item.flag > 0 && (
                     <FlagIcon
@@ -128,10 +119,7 @@ const Page: React.FC = () => {
                     />
                   )}
                   {displayOptionsResult.showImgDesc && (
-                    <div className={styles.label}>
-                      {' '}
-                      {item.caption || item.desc}{' '}
-                    </div>
+                    <div className={styles.label}> {item.desc} </div>
                   )}
                   {flagTools && item.selected ? (
                     <div className={styles.itemSelectedMask} />
@@ -144,33 +132,27 @@ const Page: React.FC = () => {
       </div>
       {/* Pagination */}
       {!loading && (
-        <DynamicPagination
-          current={pageState.page}
-          size={pageState.pageSize}
-          total={pageData.total}
-          onPageChange={onPageChange}
-          onPageSizeChange={onPageSizeChange}
-        />
+        <div className={styles.pagination}>
+          <Pagination
+            current={pageState.page}
+            pageSize={pageState.pageSize}
+            total={pageData.total}
+            showSizeChanger
+            showQuickJumper
+            pageSizeOptions={IMG_PAGE_SIZE_OPTIONS}
+            onChange={(page) => onPageChange(page)}
+            onShowSizeChange={onPageSizeChange}
+          />
+        </div>
       )}
       {/* Preview */}
-      <AnnotatePreview
+      <Preview
         visible={pageState.previewIndex >= 0 && !isSingleAnnotation}
-        categories={pageData.filters.categories}
+        onClose={exitPreview}
         list={imgList}
         current={pageState.previewIndex}
-        onCancel={exitPreview}
-        onNext={async () => {
-          if (pageState.previewIndex < imgList.length - 1)
-            onPreviewIndexChange(pageState.previewIndex + 1);
-        }}
-        onPrev={async () => {
-          if (pageState.previewIndex > 0)
-            onPreviewIndexChange(pageState.previewIndex - 1);
-        }}
-        objectsFilter={displayObjectsFilter}
-        getCustomObjectStyles={getCustomObjectStyles}
-        displayOptionsResult={displayOptionsResult}
-        displayAnnotationType={pageState.filterValues.displayAnnotationType}
+        onCurrentChange={onPreviewIndexChange}
+        renderAnnotationImage={renderAnnotationImage}
       />
       {/* Screen loading */}
       {pageData.screenLoading ? (

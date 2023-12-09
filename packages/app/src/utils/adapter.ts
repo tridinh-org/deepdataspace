@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
+import { rleToCanvas } from '@/components/Edit/tools/useMask';
+import { DATA } from '@/services/type';
 import { LabelImageFile } from '@/types/annotator';
 import { COCO } from '@/types/coco';
-import { rleToCanvas } from 'dds-components/Annotator/tools/useMask';
 import {
   calculatePolygonArea,
   convertToVerticesArray,
   getLimitRectFromPoints,
   getMaskInfoByCanvas,
   translateBoundingBoxToRect,
-} from 'dds-components/Annotator/utils/compute';
-import { Category } from '@/types';
+} from './compute';
 
 export const convertToCocoDateset = (
   images: LabelImageFile[],
-  categories: Category[],
+  categories: DATA.Category[],
 ) => {
   const cocoDataset: COCO.Dataset = {
     info: {
@@ -104,8 +104,8 @@ export const convertToCocoDateset = (
         Object.assign(newAnnotation, { segmentation, bbox, area });
       }
 
-      if (annotation.mask && annotation.mask.length > 0) {
-        const rle = annotation.mask;
+      if (annotation.maskRle && annotation.maskRle.length > 0) {
+        const rle = annotation.maskRle;
         const canvas = rleToCanvas(
           rle,
           { width: image.width, height: image.height },

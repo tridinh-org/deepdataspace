@@ -9,11 +9,11 @@ import {
   qaProject,
   exportLabelProject,
 } from '@/services/project';
+import { DATA } from '@/services/type';
 import { message } from 'antd';
-import { globalLocaleText } from 'dds-utils/locale';
+import { globalLocaleText } from '@/locales/helper';
 import { EProjectStatus, EQaAction } from '../constants';
 import { isEqual } from 'lodash';
-import { NsProject } from '@/types/project';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -23,7 +23,7 @@ interface PageState {
 }
 
 interface PageData {
-  list: NsProject.Project[];
+  list: DATA.Project[];
   total: number;
 }
 
@@ -47,7 +47,7 @@ export interface ProjectModalForm {
 export interface ProjectModal {
   show: boolean;
   current: number;
-  targetProject?: NsProject.Project; // edit (if had value) | new
+  targetProject?: DATA.Project; // edit (if had value) | new
   initialValues: ProjectModalForm;
   disableInitProject?: boolean;
 }
@@ -128,7 +128,7 @@ export default () => {
   };
 
   /** For owner / pm */
-  const onEditProject = (project: NsProject.Project, isInit?: boolean) => {
+  const onEditProject = (project: DATA.Project, isInit?: boolean) => {
     setProjectModal((s) => {
       const {
         name,
@@ -245,7 +245,7 @@ export default () => {
 
   /** For owner */
   const onChangeProjectResult = async (
-    project: NsProject.Project,
+    project: DATA.Project,
     action: EQaAction,
   ) => {
     try {

@@ -7,11 +7,11 @@ import {
   IMG_FLAG,
   LabelDiffMode,
 } from '@/constants';
-import { Category } from '@/types';
-import { NsDataSet } from '@/types/dataset';
+import { DATA } from '@/services/type';
+import { AnnotationImageHandle } from '@/components/AnnotationImage';
 
 export interface Comparisons {
-  label: NsDataSet.Label;
+  label: DATA.Label;
   orderBy: COMPARISONS_SORTBY;
   precision: number;
   displays: string[];
@@ -79,15 +79,15 @@ export const DEFAULT_PAGE_STATE = {
  */
 export interface PageData {
   // data
-  imgList: NsDataSet.DataSetImg[];
+  imgList: DATA.DataSetImg[];
   total: number;
   screenLoading: string;
   // filters
   filters: {
-    categories: Category[];
+    categories: DATA.Category[];
     annotationTypes: string[];
     displayOptions: DisplayOption[];
-    labels: NsDataSet.Label[];
+    labels: DATA.Label[];
   };
   // flag tools
   flagTools: {
@@ -110,7 +110,6 @@ export const DEFALUE_PAGE_INNER_DATA = {
 export const DEFAULT_PAGE_DATA = {
   ...DEFALUE_PAGE_INNER_DATA,
   screenLoading: '',
-  hasEmbedFile: false,
   filters: {
     categories: [],
     annotationTypes: [],
@@ -118,3 +117,15 @@ export const DEFAULT_PAGE_DATA = {
     labels: [],
   },
 };
+
+export type AnnotationImageRender = (record: {
+  data: DATA.DataSetImg;
+  currentSize?: ISize;
+  wrapWidth?: number;
+  wrapHeight?: number;
+  minHeight?: number;
+  isPreview?: boolean;
+  imgStyle?: React.CSSProperties;
+  ref?: React.RefObject<AnnotationImageHandle> | null;
+  onLoad?: (e: React.UIEvent<HTMLImageElement, UIEvent>) => void;
+}) => JSX.Element | null;

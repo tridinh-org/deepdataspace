@@ -7,7 +7,7 @@ import {
   GatewayOutlined,
   BulbOutlined,
 } from '@ant-design/icons';
-import { useLocale } from 'dds-utils/locale';
+import { useLocale } from '@/locales/helper';
 import styles from './index.less';
 
 interface IProps {
@@ -34,7 +34,7 @@ const CustomMenu: React.FC<IProps> = ({ collapsed }) => {
         title: '',
         link: '/project',
         icon: <GatewayOutlined />,
-        onClick: () => {
+        action: () => {
           setShowAnnotateModal(true);
         },
       },
@@ -74,7 +74,9 @@ const CustomMenu: React.FC<IProps> = ({ collapsed }) => {
 
   const clickMenuItem = ({ key }: { key: string }) => {
     const item = menu.find((item) => item.key === key);
-    if (!item?.onClick) {
+    if (item?.action) {
+      item.action();
+    } else {
       history.push(item?.link);
     }
   };

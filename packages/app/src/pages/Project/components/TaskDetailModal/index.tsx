@@ -1,12 +1,12 @@
+import { DATA } from '@/services/type';
 import { ProTable, ProColumns } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
 import { Modal } from 'antd';
 import { useMemo } from 'react';
-import { useLocale } from 'dds-utils/locale';
+import { useLocale } from '@/locales/helper';
 import TableTags from '../TableTags';
 import { EProjectAction, EProjectRole } from '../../models/auth';
 import TaskProgress from '../TaskProgress';
-import { NsProject } from '@/types/project';
 
 const TaskDetailModal = () => {
   const { getUserRoles, checkPermission } = useModel('Project.auth');
@@ -22,12 +22,12 @@ const TaskDetailModal = () => {
     taskDetailModalIndex !== undefined
       ? pageData.list[taskDetailModalIndex]
       : undefined;
-  const workerList: NsProject.ProjectWorker[] = useMemo(() => {
+  const workerList: DATA.ProjectWorker[] = useMemo(() => {
     if (!task) return [];
     return task.labelers.concat(task.reviewers);
   }, [task]);
 
-  const getActions = (record: NsProject.ProjectWorker) => {
+  const getActions = (record: DATA.ProjectWorker) => {
     const actions = [];
     const userRoles = getUserRoles(pageData.projectDetail, task);
     if (
@@ -49,7 +49,7 @@ const TaskDetailModal = () => {
     return actions;
   };
 
-  const columns: ProColumns<NsProject.ProjectWorker>[] = [
+  const columns: ProColumns<DATA.ProjectWorker>[] = [
     {
       title: localeText('proj.detail.modal.index'),
       valueType: 'index',
@@ -92,7 +92,7 @@ const TaskDetailModal = () => {
       footer={null}
     >
       {task && (
-        <ProTable<NsProject.ProjectWorker>
+        <ProTable<DATA.ProjectWorker>
           scroll={{ x: 800 }}
           rowKey="id"
           columns={columns}

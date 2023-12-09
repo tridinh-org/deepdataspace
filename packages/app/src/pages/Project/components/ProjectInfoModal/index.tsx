@@ -5,7 +5,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
-import { useLocale } from 'dds-utils/locale';
+import { useLocale } from '@/locales/helper';
 import { Button } from 'antd';
 
 const ProjectInfoModal = () => {

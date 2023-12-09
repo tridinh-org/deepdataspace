@@ -12,11 +12,11 @@ import {
   requestReassignWorker,
   requestRestartTask,
 } from '@/services/project';
-import { globalLocaleText } from 'dds-utils/locale';
+import { DATA } from '@/services/type';
+import { globalLocaleText } from '@/locales/helper';
 import { message } from 'antd';
 import { EQaAction } from '../constants';
-import { getUrlPathnameLastKey } from 'dds-utils/url';
-import { NsProject } from '@/types/project';
+import { getUrlPathnameLastKey } from '@/utils/url';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -27,8 +27,8 @@ interface PageState {
 
 interface PageData {
   isPm?: boolean;
-  projectDetail?: NsProject.Project;
-  list: NsProject.ProjectTask[];
+  projectDetail?: DATA.Project;
+  list: DATA.ProjectTask[];
   selectedTaskIds: string[];
   total: number;
 }
@@ -52,9 +52,9 @@ export interface AssignModalForm {
 export interface AssignModal {
   show: boolean;
   types: ASSIGN_TYPE[];
-  tasks: NsProject.ProjectTask[];
+  tasks: DATA.ProjectTask[];
   initialValues: AssignModalForm;
-  reassignTarget?: NsProject.ProjectWorker;
+  reassignTarget?: DATA.ProjectWorker;
 }
 
 const INIT_ASSIGN_MODAL = {
@@ -162,7 +162,7 @@ export default () => {
     });
   };
 
-  const assignWorker = (task: NsProject.ProjectTask, types: ASSIGN_TYPE[]) => {
+  const assignWorker = (task: DATA.ProjectTask, types: ASSIGN_TYPE[]) => {
     if (!pageData.projectDetail) return;
     const initialValues: AssignModalForm = {};
     if (types.includes(ASSIGN_TYPE.labeler)) {
@@ -180,8 +180,8 @@ export default () => {
   };
 
   const reassignWorker = (
-    task: NsProject.ProjectTask,
-    worker: NsProject.ProjectWorker,
+    task: DATA.ProjectTask,
+    worker: DATA.ProjectWorker,
   ) => {
     setAssignModal((s) => {
       s.show = true;
@@ -217,12 +217,7 @@ export default () => {
       });
     });
     if (keyWords) {
-      userList = (await fetchUserLint({ name: keyWords })).userList.map(
-        (item) => ({
-          name: item.name,
-          id: item.id,
-        }),
-      );
+      userList = (await fetchUserLint({ name: keyWords })).userList;
     }
     return userList.map((item) => ({
       label: item.name,
@@ -305,7 +300,7 @@ export default () => {
     return Promise.resolve(false);
   };
 
-  const restartTask = async (task: NsProject.ProjectTask) => {
+  const restartTask = async (task: DATA.ProjectTask) => {
     try {
       await requestRestartTask(task.id);
       loadPageData();
@@ -316,7 +311,7 @@ export default () => {
     }
   };
 
-  const commitReviewTask = async (task: NsProject.ProjectTask) => {
+  const commitReviewTask = async (task: DATA.ProjectTask) => {
     try {
       await requestCommitReiviewTask(task.id);
       loadPageData();
@@ -329,7 +324,7 @@ export default () => {
 
   /** For pm */
   const onChangeTaskResult = async (
-    task: NsProject.ProjectTask,
+    task: DATA.ProjectTask,
     action: EQaAction,
   ) => {
     try {

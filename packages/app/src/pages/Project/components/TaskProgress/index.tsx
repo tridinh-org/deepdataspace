@@ -1,9 +1,9 @@
-import { useLocale } from 'dds-utils/locale';
+import { DATA } from '@/services/type';
+import { useLocale } from '@/locales/helper';
 import styles from './index.less';
-import { NsProject } from '@/types/project';
 
 interface IProps {
-  data?: NsProject.ProjectWorker;
+  data?: DATA.ProjectWorker;
 }
 
 const TaskProgress: React.FC<IProps> = ({ data }) => {

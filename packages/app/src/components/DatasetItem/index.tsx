@@ -1,20 +1,20 @@
 import React from 'react';
-import { Card, List, Tooltip } from 'antd';
+import { Card, List, Tooltip, Image } from 'antd';
 import Icon from '@ant-design/icons';
 import { ReactComponent as DownloadIcon } from '@/assets/svg/download.svg';
-import { useLocale } from 'dds-utils/locale';
+import { DATA } from '@/services/type';
+import { useLocale } from '@/locales/helper';
 import { ANNOTATION_TYPE_ICONS } from '@/constants';
 import { generateDefaultCover } from '@/utils/datasets';
 import styles from './index.less';
-import { NsDataSet } from '@/types/dataset';
 
 export interface IProps {
-  data: NsDataSet.DataSet;
+  data: DATA.DataSet;
   supportExport?: boolean;
-  onClickItem: (item: NsDataSet.DataSet) => void;
+  onClickItem: (item: DATA.DataSet) => void;
   onClickCopyLink: (
     event: React.UIEvent<HTMLElement, UIEvent>,
-    item: NsDataSet.DataSet,
+    item: DATA.DataSet,
   ) => void;
 }
 
@@ -33,31 +33,30 @@ const DatasetItem: React.FC<IProps> = (props) => {
       >
         <div className={styles.imgBox}>
           <div className={styles.imgWrap}>
-            <img
+            <Image
               src={data?.coverUrl ?? ''}
               alt="cover"
               onError={(e: any) => {
                 e.target.src = generateDefaultCover(data?.objectTypes);
               }}
+              preview={false}
             />
           </div>
-          {data.objectTypes.length && (
-            <div className={styles.types}>
-              {data.objectTypes.map((type) => (
-                <div key={type} className={styles.iconWrap}>
-                  <Tooltip title={type} placement="bottom">
-                    <Icon
-                      component={
-                        ANNOTATION_TYPE_ICONS[
-                          type as keyof typeof ANNOTATION_TYPE_ICONS
-                        ]
-                      }
-                    />
-                  </Tooltip>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className={styles.types}>
+            {data.objectTypes.map((type) => (
+              <div key={type} className={styles.iconWrap}>
+                <Tooltip title={type} placement="bottom">
+                  <Icon
+                    component={
+                      ANNOTATION_TYPE_ICONS[
+                        type as keyof typeof ANNOTATION_TYPE_ICONS
+                      ]
+                    }
+                  />
+                </Tooltip>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className={styles.infoWrap}>

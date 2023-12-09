@@ -2,14 +2,14 @@ import { history, useModel } from '@umijs/max';
 import copy from 'copy-to-clipboard';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
 import { message } from 'antd';
-import { globalLocaleText } from 'dds-utils/locale';
+import { DATA } from '@/services/type';
+import { globalLocaleText } from '@/locales/helper';
 import { PaginationState } from '@/models/datasets';
-import { NsDataSet } from '@/types/dataset';
 
 export default () => {
   const { loadDatasets, setPagination } = useModel('datasets');
 
-  const onClickItem = (item: NsDataSet.DataSet) => {
+  const onClickItem = (item: DATA.DataSet) => {
     const pageState = JSON.stringify({
       datasetId: item.id,
       datasetName: item.name,
@@ -19,7 +19,7 @@ export default () => {
 
   const onClickCopyLink = (
     e: React.UIEvent<HTMLElement, UIEvent>,
-    item: NsDataSet.DataSet,
+    item: DATA.DataSet,
   ) => {
     const pageState = JSON.stringify({
       datasetId: item.id,

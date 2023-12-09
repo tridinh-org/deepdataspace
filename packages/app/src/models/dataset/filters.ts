@@ -8,7 +8,8 @@ import {
   AnnotationType,
   IMG_CLOUMN_COUNT_MAX,
 } from '@/constants';
-import { getDefaultDisplayOptions } from '@/utils/datasets';
+import { getDefaultDisplayOptions } from '@/utils/annotation';
+import { reportEvent } from '@/logs';
 
 export default () => {
   const { pageState, setPageState, pageData, setPageData } =
@@ -18,6 +19,9 @@ export default () => {
     setPageState((s) => {
       s.filterValues.categoryId = categoryId;
       s.page = 1;
+    });
+    reportEvent('dataset_header_filter_category', {
+      categoryId,
     });
   };
 
@@ -41,11 +45,18 @@ export default () => {
     setPageState((s) => {
       s.cloumnCount = cloumnCount;
     });
+    reportEvent('dataset_header_filter_cloumn_count', {
+      cloumnCount,
+    });
   };
 
   const onDisplayOptionsChange = (values: any) => {
     setPageState((s) => {
       s.filterValues.displayOptions = values as DisplayOption[];
+    });
+    reportEvent('dataset_header_filter_display_options', {
+      selectedOptions: values,
+      annotationType: pageState.filterValues.displayAnnotationType,
     });
   };
 
@@ -59,11 +70,17 @@ export default () => {
         );
       });
     });
+    reportEvent('dataset_header_filter_labelsets_selected', {
+      labelsetCount: values.length,
+    });
   };
 
   const onLabelsDiffModeChange = (mode: LabelDiffMode) => {
     setPageState((s) => {
       s.filterValues.diffMode = mode;
+    });
+    reportEvent('dataset_header_filter_labelsets_diff_mode', {
+      diffMode: mode,
     });
   };
 
@@ -84,6 +101,9 @@ export default () => {
     setPageState((s) => {
       s.filterValues.displayAnnotationType = type;
       s.filterValues.displayOptions = optionsValue;
+    });
+    reportEvent('dataset_header_filter_display_annotation', {
+      annotationType: type,
     });
   };
 

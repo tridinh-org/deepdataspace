@@ -1,26 +1,25 @@
 import React, { useMemo } from 'react';
 import { useModel } from '@umijs/max';
-import { usePageModelLifeCycle } from 'dds-hooks';
+import usePageModelLifeCycle from '@/hooks/usePageModelLifeCycle';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, List, Spin, Tabs } from 'antd';
 import VirtualList, { ListRef } from 'rc-virtual-list';
-import { useWindowResize } from 'dds-hooks';
+import useWindowResize from '@/hooks/useWindowResize';
 import styles from './index.less';
+import { DATA } from '@/services/type';
+import AnnotationImage from '@/components/AnnotationImage';
 import { chunk } from 'lodash';
 import DropdownSelector from '@/components/DropdownSelector';
+import { AnnotationType } from '@/constants';
 import { LabelImage, LoadImagesType } from '../models/workspace';
-import {
-  AnnotateView,
-  AnnotateEditor,
-  EditorMode,
-} from 'dds-components/Annotator';
+import Edit from '@/components/Edit';
+import { EditorMode } from '@/components/Edit/type';
 import { ETaskImageStatus, ETaskStatus } from '../constants';
 import { ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
 import { EProjectAction } from '../models/auth';
 import { useSize } from 'ahooks';
-import { backPath } from 'dds-utils/url';
-import { useLocale } from 'dds-utils/locale';
-import { NsProject } from '@/types/project';
+import { backPath } from '@/utils/url';
+import { useLocale } from '@/locales/helper';
 
 const Page: React.FC = () => {
   const { checkPermission } = useModel('Project.auth');
@@ -35,6 +34,7 @@ const Page: React.FC = () => {
     userRoles,
     tabItems,
     labelImages,
+    categoryColors,
     isEditorVisible,
     onStatusTabChange,
     onRoleChange,
@@ -188,10 +188,10 @@ const Page: React.FC = () => {
                       {localeText('proj.workspace.eProj.startReview')}
                     </Button>
                   )}
-                <DropdownSelector<NsProject.ProjectWorker, string>
+                <DropdownSelector<DATA.ProjectWorker, string>
                   data={pageData.taskRoles}
                   value={pageState.roleId || ''}
-                  filterOptionName={(option: NsProject.ProjectWorker) =>
+                  filterOptionName={(option: DATA.ProjectWorker) =>
                     `${option.userName} (${option.role})`
                   }
                   filterOptionValue={(option) => option.id}
@@ -238,11 +238,15 @@ const Page: React.FC = () => {
                           height: itemHeight,
                         }}
                       >
-                        <AnnotateView
-                          categories={pageData.categoryList}
-                          data={item}
+                        <AnnotationImage
                           wrapWidth={itemWidth}
                           wrapHeight={itemHeight}
+                          image={item}
+                          objects={item.objects}
+                          displayType={AnnotationType.Detection}
+                          globalDisplayOptions={{
+                            categoryColors,
+                          }}
                         />
                       </div>
                     </div>
@@ -260,7 +264,7 @@ const Page: React.FC = () => {
       {/* Annotator */}
       {isEditorVisible && (
         <div className={styles.editor}>
-          <AnnotateEditor
+          <Edit
             isSeperate={false}
             mode={pageData.editorMode}
             visible={isEditorVisible}

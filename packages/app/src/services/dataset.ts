@@ -1,6 +1,8 @@
 import { IMG_FLAG } from '@/constants';
 import { request } from '@umijs/max';
-import { NsApiDataset } from '@/types/api';
+import { API, EnumModelType, EnumTaskStatus, ModelParam } from './type';
+import { Modal } from 'antd';
+import { globalLocaleText } from '@/locales/helper';
 
 // function sleep(time: number) {
 //   return new Promise((resolve) => setTimeout(resolve, time));
@@ -13,7 +15,7 @@ export async function fetchDatasetList(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchDatasetListRsp>(`/api/v1/datasets`, {
+  return request<API.FetchDatasetListRsp>(`/api/v1/datasets`, {
     method: 'GET',
     params,
     ...(options || {}),
@@ -26,7 +28,7 @@ export async function fetchDatasetDetail(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchDatasetDetailRsp>(
+  return request<API.FetchDatasetDetailRsp>(
     `/api/v1/datasets/${params.datasetId}`,
     {
       method: 'GET',
@@ -46,7 +48,7 @@ export async function fetchImgList(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchImgListRsp>(`/api/v1/images`, {
+  return request<API.FetchImgListRsp>(`/api/v1/images`, {
     method: 'GET',
     params,
     ...(options || {}),
@@ -63,7 +65,7 @@ export async function saveFlagReq(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchImgListRsp>(`/api/v1/image_flags`, {
+  return request<API.FetchImgListRsp>(`/api/v1/image_flags`, {
     method: 'POST',
     data: {
       ...params,
@@ -78,7 +80,7 @@ export async function rerankByFlags(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.AsyncTaskRsp>(`/api/v1/tasks/rerank_by_flags`, {
+  return request<API.AsyncTaskRsp>(`/api/v1/tasks/rerank_by_flags`, {
     method: 'POST',
     data: {
       ...params,
@@ -94,7 +96,7 @@ export async function queryAsyncTaskStatus(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.AsyncTaskRsp>(
+  return request<API.AsyncTaskRsp>(
     `/api/v1/tasks/${params.name}/${params.id}`,
     {
       method: 'GET',
@@ -118,7 +120,7 @@ export async function saveAnnotationsReq(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchImgListRsp>(`/api/v1/annotations`, {
+  return request<API.FetchImgListRsp>(`/api/v1/annotations`, {
     method: 'POST',
     data: {
       ...params,
@@ -139,7 +141,7 @@ export async function fetchComparisonsImgList(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchImgListRsp>(`/api/v1/comparisons`, {
+  return request<API.FetchImgListRsp>(`/api/v1/comparisons`, {
     method: 'GET',
     params,
     ...(options || {}),
@@ -154,11 +156,115 @@ export async function labelClone(
   },
   options?: { [key: string]: any },
 ) {
-  return request<NsApiDataset.FetchImgListRsp>(`/api/v1/label_clone`, {
+  return request<API.FetchImgListRsp>(`/api/v1/label_clone`, {
     method: 'POST',
     data: {
       ...params,
     },
     ...(options || {}),
   });
+}
+
+async function fetchTaskUuid(
+  type: EnumModelType,
+  params: any,
+  options?: { [key: string]: any },
+) {
+  return request<API.fetchTaskUuid>(
+    `${process.env.MODEL_API_PATH}/tasks/${type}`,
+    {
+      method: 'POST',
+      data: {
+        ...params,
+      },
+      ...(options || {
+        hideCodeErrorMsg: true,
+      }),
+    },
+  );
+}
+
+function fetchTaskResults<T extends EnumModelType>(
+  taskUuid: string,
+  options?: { [key: string]: any },
+) {
+  return request<API.FetchModelRsp<T>>(
+    `${process.env.MODEL_API_PATH}/task_statuses/${taskUuid}`,
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
+}
+
+function fetchMaskTaskResults<T extends EnumModelType>(
+  taskUuid: string,
+  options?: { [key: string]: any },
+) {
+  return request<API.FetchModelRsp<T>>(
+    `${process.env.MODEL_API_PATH}/mask_task_statuses/${taskUuid}`,
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
+}
+
+export async function pollTaskResults<T extends EnumModelType>(
+  type: EnumModelType,
+  taskUuid: string,
+  maxAttempts = 5000,
+  interval = 1000,
+) {
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    const fetchTaskResultsRequest = [
+      EnumModelType.SegmentByMask,
+      EnumModelType.MaskEdgeStitching,
+      EnumModelType.SegmentEverything,
+    ].includes(type)
+      ? fetchMaskTaskResults
+      : fetchTaskResults;
+    const results = await fetchTaskResultsRequest<T>(taskUuid);
+
+    if (results.status === EnumTaskStatus.Success) {
+      return results.result;
+    }
+
+    if (results.status === EnumTaskStatus.Failed) {
+      throw new Error(results.error);
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, interval);
+    });
+    attempts++;
+  }
+
+  throw new Error('Max attempts exceeded');
+}
+
+export async function fetchModelResults<T extends EnumModelType>(
+  type: EnumModelType,
+  params: ModelParam<T>,
+) {
+  try {
+    const { taskUuid } = await fetchTaskUuid(type, params);
+    const result = await pollTaskResults<T>(type, taskUuid);
+    return result;
+  } catch (error: any) {
+    // status 429 indicates warning for rate limit of AI annotate request
+    if (error.response.status === 429) {
+      Modal.info({
+        title: globalLocaleText('smartAnnotation.rateLimit.title'),
+        centered: true,
+        content: globalLocaleText('smartAnnotation.rateLimit.content'),
+        okText: globalLocaleText('smartAnnotation.rateLimit.okText'),
+        onOk: () => {},
+      });
+    } else {
+      throw new Error(error.message);
+    }
+  }
 }

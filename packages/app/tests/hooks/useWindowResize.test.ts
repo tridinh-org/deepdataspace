@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useWindowResize } from 'dds-hooks';
+import useWindowResize from '@/hooks/useWindowResize';
 
 // Unit tests
 describe('useWindowResize', () => {

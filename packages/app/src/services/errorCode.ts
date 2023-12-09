@@ -1,4 +1,4 @@
-import { globalLocaleText } from 'dds-utils/locale';
+import { globalLocaleText } from '@/locales/helper';
 
 export const ERROR_STATUS_MSG_MAP: Record<number, string> = {
   /** CODE_2XX */

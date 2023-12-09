@@ -13,8 +13,9 @@ import {
   TASK_STATUS_MAP,
 } from '../constants';
 import TableTags from '../components/TableTags';
-import { usePageModelLifeCycle } from 'dds-hooks';
-import { useLocale } from 'dds-utils/locale';
+import usePageModelLifeCycle from '@/hooks/usePageModelLifeCycle';
+import { DATA } from '@/services/type';
+import { useLocale } from '@/locales/helper';
 import TaskAssignModal from '../components/TaskAssignModal';
 import TaskDetailModal from '../components/TaskDetailModal';
 import { EProjectAction } from '../models/auth';
@@ -23,8 +24,7 @@ import { useState } from 'react';
 import TaskProgress from '../components/TaskProgress';
 import { useSize } from 'ahooks';
 import styles from './index.less';
-import { backPath, getUrlPathnameLastKey } from 'dds-utils/url';
-import { NsProject } from '@/types/project';
+import { backPath, getUrlPathnameLastKey } from '@/utils/url';
 
 const TaskList: React.FC = () => {
   const { user } = useModel('user');
@@ -49,7 +49,7 @@ const TaskList: React.FC = () => {
   usePageModelLifeCycle({ onInitPageState, pageState });
   const { localeText } = useLocale();
 
-  const getActions = (record: NsProject.ProjectTask, index: number) => {
+  const getActions = (record: DATA.ProjectTask, index: number) => {
     if (!pageData.projectDetail) return [];
 
     const actions = [];
@@ -210,7 +210,7 @@ const TaskList: React.FC = () => {
     return actions;
   };
 
-  const columns: ProColumns<NsProject.ProjectTask>[] = [
+  const columns: ProColumns<DATA.ProjectTask>[] = [
     {
       title: localeText('proj.table.detail.index'),
       valueType: 'index',
@@ -254,7 +254,7 @@ const TaskList: React.FC = () => {
             title: localeText('proj.table.detail.reviewLeader'),
             ellipsis: true,
             width: 200,
-            render: (_: React.ReactNode, record: NsProject.ProjectTask) =>
+            render: (_: React.ReactNode, record: DATA.ProjectTask) =>
               record.reviewLeader ? (
                 <TableTags
                   isPerson
@@ -271,7 +271,7 @@ const TaskList: React.FC = () => {
             dataIndex: 'reviewer',
             ellipsis: true,
             width: 200,
-            render: (_: React.ReactNode, record: NsProject.ProjectTask) =>
+            render: (_: React.ReactNode, record: DATA.ProjectTask) =>
               record.reviewers && record.reviewers.length ? (
                 <TableTags
                   isPerson
@@ -369,7 +369,7 @@ const TaskList: React.FC = () => {
       }}
       content={hideDescription ? null : pageData.projectDetail?.description}
     >
-      <ProTable<NsProject.ProjectTask>
+      <ProTable<DATA.ProjectTask>
         rowKey="id"
         className={styles.table}
         scroll={{

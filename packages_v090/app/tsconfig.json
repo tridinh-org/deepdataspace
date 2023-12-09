@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@@/*": ["src/.umi/*"],
+      "dds-components": ["../../packages/components/src"],
+      "dds-components/*": ["../../packages/components/src/*"],
+      "dds-utils/*": ["../../packages/utils/src/*"],
+      "dds-hooks": ["../../packages/hooks/src"]
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import GlobalLoading from '@/GlobalLoading';
+import { GlobalLoading } from 'dds-components';
+import React from 'react';
 
 export default () => {
   return (

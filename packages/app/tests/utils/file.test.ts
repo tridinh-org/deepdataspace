@@ -2,7 +2,7 @@ import {
   genFileNameByTimestamp,
   loadImage,
   saveObejctToJsonFile,
-} from 'dds-utils/file';
+} from '@/utils/file';
 
 describe('genFileNameByTimestamp', () => {
   it('generates a file name with just a timestamp', () => {

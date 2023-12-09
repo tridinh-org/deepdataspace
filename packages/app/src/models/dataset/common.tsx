@@ -2,9 +2,10 @@
  * 1、Page public member variables.
  * 2、Page default request.
  */
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useImmer } from 'use-immer';
 import { useRequest } from 'ahooks';
+import { message } from 'antd';
 import {
   fetchDatasetDetail,
   fetchImgList,
@@ -16,22 +17,19 @@ import {
   DisplayOption,
   LabelDiffMode,
   LABEL_SOURCE,
-  COMPARE_RESULT_FILL_COLORS,
 } from '@/constants';
-import {
-  getDefaultDisplayOptions,
-  getLabelCustomStyles,
-} from '@/utils/datasets';
+import { getCategoryColors } from '@/utils/color';
+import { getDefaultDisplayOptions } from '@/utils/annotation';
 import {
   DEFALUE_PAGE_INNER_DATA,
   DEFAULT_PAGE_DATA,
   DEFAULT_PAGE_STATE,
   PageData,
   PageState,
+  AnnotationImageRender,
 } from './type';
-import { isNumber } from 'lodash';
-import { IAnnotationObject } from 'dds-components/Annotator';
-import { NsDataSet } from '@/types/dataset';
+import { API } from '@/services/type';
+import AnnotationImage from '@/components/AnnotationImage';
 
 export default () => {
   const [pageState, setPageState] = useImmer<PageState>({
@@ -70,6 +68,10 @@ export default () => {
       onSuccess: ({ categoryList, labelList, objectTypes }, params) => {
         const defaultLabelType =
           params.length > 0 ? params[0] : LABEL_SOURCE.gt;
+        if (!categoryList || !categoryList.length) {
+          message.warning('none category');
+          return;
+        }
         const types = objectTypes.filter(
           (item) => item !== AnnotationType.Classification,
         );
@@ -184,7 +186,7 @@ export default () => {
         pageState.comparisons?.orderBy,
         pageState.flagTools?.flagStatus,
       ],
-      onSuccess: (result) => {
+      onSuccess: (result: API.FetchImgListRsp) => {
         setPageData((s) => {
           s.imgList = result.imageList;
           s.total = result.total;
@@ -216,7 +218,14 @@ export default () => {
 
   // UI display-related variables.
   const loading = loadingDatasetInfo || loadingImgList;
-
+  const categoryColors = useMemo(
+    () =>
+      getCategoryColors(
+        filters.categories.map((item) => item.id),
+        filterValues.categoryId,
+      ),
+    [filters.categories, filterValues.categoryId],
+  );
   const displayLabelIds: string[] = useMemo(() => {
     if (comparisons) {
       const result = [];
@@ -265,122 +274,51 @@ export default () => {
     return result;
   }, [pageState.filterValues.displayOptions]);
 
-  const displayObjectsFilter = useCallback(
-    (imageData: NsDataSet.DataSetImg) => {
-      let objects = [...imageData.objects] || [];
-
-      const analysisMode = pageState.comparisons;
-      const diffMode = {
+  const renderAnnotationImage: AnnotationImageRender = (record) => {
+    const {
+      data,
+      currentSize,
+      wrapWidth,
+      wrapHeight,
+      minHeight,
+      isPreview,
+      imgStyle,
+      onLoad,
+    } = record;
+    const globalDisplayOptions = {
+      ...displayOptionsResult,
+      categoryId: pageState.filterValues.categoryId || '',
+      categoryColors,
+    };
+    const modeDisplayOptions = {
+      diffMode: {
         labels: pageData.filters.labels,
         displayLabelIds,
         isTiledDiff,
-      };
-      // Analysis mode -> filter fn/fp to display
-      if (analysisMode) {
-        const predObjects = objects.filter(
-          (item) => item.source === LABEL_SOURCE.pred,
-        );
+      },
+      analysisMode: pageState.comparisons,
+    };
 
-        // filter score
-        objects = objects.filter(
-          (item) => (item.conf || 0) >= analysisMode.score,
-        );
+    if (!data) return null;
 
-        // compute gt compare result
-        objects = objects.map((box) => {
-          const newBox = { ...box };
-          if (box.source === LABEL_SOURCE.gt) {
-            const result =
-              isNumber(box.matchedDetIdx) &&
-              box.matchedDetIdx >= 0 &&
-              objects.includes(predObjects[box.matchedDetIdx])
-                ? COMPARE_RESULT.ok
-                : COMPARE_RESULT.fn;
-            newBox.compareResult = result;
-          }
-          return newBox;
-        });
-
-        // filters to display
-        objects = objects.filter((item) => {
-          if (item.compareResult === COMPARE_RESULT.ok) {
-            // ok && source in displays
-            return item.source && analysisMode.displays.includes(item.source);
-          }
-          return (
-            item.compareResult &&
-            analysisMode.displays.includes(item.compareResult)
-          );
-        });
-      }
-
-      return objects.filter((item) => {
-        const { showAnnotations, showAllCategory } = displayOptionsResult;
-        const categoryId = pageState.filterValues.categoryId || '';
-        if (
-          !showAnnotations ||
-          (!showAllCategory && item.categoryId !== categoryId) ||
-          (diffMode &&
-            item.labelId &&
-            !diffMode.displayLabelIds.includes(item.labelId)) ||
-          (diffMode &&
-            diffMode.isTiledDiff &&
-            item.labelId !== imageData.curLabelId)
-        ) {
-          return false;
-        }
-        if (!analysisMode && diffMode) {
-          const label = diffMode.labels.find(
-            (label) => label.id === item.labelId,
-          );
-          if (!label) return false;
-          if (label.source === LABEL_SOURCE.gt) return true;
-          return (
-            item.conf !== undefined &&
-            item.conf >= label?.confidenceRange[0] &&
-            item.conf <= label?.confidenceRange[1]
-          );
-        }
-        return true;
-      });
-    },
-    [
-      pageState.comparisons,
-      pageData.filters.labels,
-      displayLabelIds,
-      isTiledDiff,
-      displayOptionsResult,
-    ],
-  );
-
-  const getCustomObjectStyles = useCallback(
-    (object: IAnnotationObject) => {
-      const {
-        colorAplha: pointAplha,
-        strokeDash,
-        lineWidth: thickness,
-      } = getLabelCustomStyles(
-        object.labelId,
-        displayLabelIds,
-        isTiledDiff || Boolean(pageState.comparisons),
-      );
-      if (Boolean(pageState.comparisons) && object.compareResult) {
-        return {
-          pointAplha,
-          strokeDash,
-          thickness,
-          fillColor:
-            COMPARE_RESULT_FILL_COLORS[object.compareResult] || 'transparent',
-        };
-      }
-      return {
-        pointAplha,
-        strokeDash,
-        thickness,
-      };
-    },
-    [displayLabelIds, isTiledDiff, Boolean(pageState.comparisons)],
-  );
+    return (
+      <AnnotationImage
+        image={data}
+        objects={data.objects}
+        curLabelId={data.curLabelId}
+        currentSize={currentSize}
+        wrapWidth={wrapWidth}
+        wrapHeight={wrapHeight}
+        minHeight={minHeight}
+        isPreview={isPreview}
+        imgStyle={imgStyle}
+        displayType={pageState.filterValues.displayAnnotationType}
+        globalDisplayOptions={globalDisplayOptions}
+        modeDisplayOptions={modeDisplayOptions}
+        onLoad={onLoad}
+      />
+    );
+  };
 
   return {
     // page var
@@ -399,12 +337,12 @@ export default () => {
 
     // compute var
     loading,
+    categoryColors,
     displayLabelIds,
     isTiledDiff,
     displayOptionsResult,
 
     // common render
-    displayObjectsFilter,
-    getCustomObjectStyles,
+    renderAnnotationImage,
   };
 };

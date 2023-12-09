@@ -1,0 +1,24 @@
+{
+  "name": "dds-components",
+  "version": "0.0.1",
+  "description": "DDS Common Component Library",
+  "license": "MIT",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "father build",
+    "build:watch": "father dev",
+    "dev": "dumi dev",
+    "docs:build": "dumi build",
+    "doctor": "father doctor",
+    "prepare": "dumi setup",
+    "start": "father dev"
+  },
+  "devDependencies": {
+    "dds-hooks": "workspace:^",
+    "dds-utils": "workspace:^",
+    "dumi": "^2.2.7",
+    "father": "^4.3.1"
+  },
+  "authors": []
+}

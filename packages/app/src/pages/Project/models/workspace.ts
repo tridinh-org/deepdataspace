@@ -1,5 +1,6 @@
 import { useImmer } from 'use-immer';
 import { useRequest } from 'ahooks';
+import { DATA } from '@/services/type';
 import {
   requestLabelTaskConfigs,
   requestLabelTaskImages,
@@ -10,13 +11,12 @@ import {
 import { EQaAction, ETaskImageStatus, ETaskStatus } from '../constants';
 import { useMemo } from 'react';
 import { message } from 'antd';
-import { EditorMode } from 'dds-components/Annotator';
+import { EditorMode } from '@/components/Edit/type';
 import { useModel } from '@umijs/max';
 import { EProjectRole } from './auth';
-import { getUrlQueryVal } from 'dds-utils/url';
-import { globalLocaleText } from 'dds-utils/locale';
-import { BaseObject, Category } from '@/types';
-import { NsProject } from '@/types/project';
+import { getUrlQueryVal } from '@/utils/url';
+import { getCategoryColors } from '@/utils/color';
+import { globalLocaleText } from '@/locales/helper';
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -27,9 +27,9 @@ interface PageState {
 }
 
 interface PageData {
-  categoryList: Category[];
-  taskRoles: NsProject.ProjectWorker[];
-  list: NsProject.TaskImage[];
+  categoryList: DATA.Category[];
+  taskRoles: DATA.ProjectWorker[];
+  list: DATA.TaskImage[];
   curIndex: number;
   page: number;
   pageSize: number;
@@ -44,7 +44,7 @@ export interface LabelImage {
   url: string;
   urlFullRes: string;
   labelId: string;
-  objects: BaseObject[];
+  objects: DATA.BaseObject[];
 }
 
 export const enum LoadImagesType {
@@ -89,7 +89,7 @@ export default () => {
   const labelImages = useMemo(() => {
     return (
       pageData.list?.map((item) => {
-        const objects: BaseObject[] = [];
+        const objects: DATA.BaseObject[] = [];
         let labelId = '';
         if (pageState.status === ETaskImageStatus.Labeling && !item.labeled) {
           // Load pre-annotation data.
@@ -113,6 +113,11 @@ export default () => {
       }) || []
     );
   }, [pageData.list, pageState.status]);
+
+  const categoryColors = useMemo(
+    () => getCategoryColors(pageData.categoryList.map((item) => item.id)),
+    [pageData.categoryList],
+  );
 
   const loadImages = async (
     loadType: LoadImagesType,
@@ -351,7 +356,14 @@ export default () => {
     });
   };
 
-  const onLabelSave = async (imageId: string, annotations: BaseObject[]) => {
+  const onLabelSave = async (
+    imageId: string,
+    annotations: DATA.BaseObject[],
+  ) => {
+    if (!annotations.length) {
+      message.warning(globalLocaleText('proj.onLabelSave.warning'));
+      return;
+    }
     setLoading(true);
     const hide = message.loading(
       globalLocaleText('proj.onLabelSave.loading'),
@@ -478,6 +490,7 @@ export default () => {
     userRoles,
     tabItems,
     labelImages,
+    categoryColors,
     isEditorVisible,
     onStatusTabChange,
     onRoleChange,

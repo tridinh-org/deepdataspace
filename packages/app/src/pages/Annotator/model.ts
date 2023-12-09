@@ -1,14 +1,14 @@
 import { useImmer } from 'use-immer';
 import { useState } from 'react';
-import { genFileNameByTimestamp, saveObejctToJsonFile } from 'dds-utils/file';
+import { DATA } from '@/services/type';
+import { genFileNameByTimestamp, saveObejctToJsonFile } from '@/utils/file';
 import { convertToCocoDateset } from '@/utils/adapter';
 import { LabelImageFile } from '@/types/annotator';
-import { Category } from '@/types';
 
 export default () => {
   const [images, setImages] = useImmer<LabelImageFile[]>([]);
   const [current, setCurrent] = useState(0);
-  const [categories, setCategories] = useImmer<Category[]>([]);
+  const [categories, setCategories] = useImmer<DATA.Category[]>([]);
 
   /** Export with COCO formats*/
   const exportAnnotations = () => {

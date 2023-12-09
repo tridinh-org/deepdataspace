@@ -8,7 +8,7 @@ import {
   useModel,
   getLocale,
 } from '@umijs/max';
-import { GlobalLoading, LangSelector, MobileAlert } from 'dds-components';
+import { GlobalLoading, LangSelector } from 'dds-components';
 import { STORAGE_KEY } from '@/constants';
 import LoginModal from '@/components/LoginModal';
 import {
@@ -20,22 +20,22 @@ import {
 } from '@ant-design/icons';
 import routes from '@/routes';
 import classNames from 'classnames';
-import { useLocale } from 'dds-utils/locale';
+import { useLocale } from '@/locales/helper';
 import CustomMenu from './menu';
-import { useSize } from 'ahooks';
+import MobileAlert from '@/components/MobileAlert';
 import styles from './index.less';
 
 const SLIDER_WIDTH = 226;
 const SLIDER_COLLAPSED_WIDTH = 88;
 
 export default () => {
-  const { loading, loadingTip } = useModel('global');
+  const { loading } = useModel('global');
   const { user, setUser, checkLoginStatus, limitLoginAction, onLogout } =
     useModel('user');
   const { pathname } = useLocation();
   const { localeText } = useLocale();
   const [collapsed, setCollapsed] = useState(true);
-  const { isMobile, setFixSliderWidth } = useModel('global');
+  const { isMobile } = useModel('global');
 
   /** Compute hide slider paths */
   const hideSiderPaths = useMemo(() => {
@@ -56,13 +56,6 @@ export default () => {
     });
     return paths;
   }, []);
-
-  // update fixSlider width
-  const size = useSize(() => document.querySelector('#fixSlider'));
-
-  useEffect(() => {
-    setFixSliderWidth(size?.width || 0);
-  }, [size?.width]);
 
   useEffect(() => {
     checkLoginStatus();
@@ -95,7 +88,6 @@ export default () => {
             }}
           />
           <Layout.Sider
-            id="fixSlider"
             className={styles.slider}
             theme="light"
             trigger={null}
@@ -191,7 +183,7 @@ export default () => {
   return isMobile ? (
     <MobileAlert />
   ) : (
-    <GlobalLoading active={loading} tip={loadingTip}>
+    <GlobalLoading active={loading}>
       <Layout>
         {renderSilder()}
         <Layout>
