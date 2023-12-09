@@ -82,7 +82,8 @@ export default function useLabels({
     switch (eleType) {
       case EElementType.Rect: {
         if (newObject.rect) {
-          newObject.rect.visible = visible;
+          // newObject.rect.visible = visible;
+          Object.assign({}, newObject.rect.visible, visible);
           updateObjectWithoutHistory(newObject, editState.focusObjectIndex);
         }
         break;

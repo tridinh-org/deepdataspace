@@ -68,6 +68,9 @@ export const convertToCocoDateset = (
         newAnnotation.category_id = categoryMap[annotation.categoryName];
       }
 
+      let kp_box = [0, 0, 0, 0];
+      let kp_area = 0;
+
       if (annotation.boundingBox) {
         const { x, y, width, height } = translateBoundingBoxToRect(
           annotation.boundingBox,
@@ -78,6 +81,8 @@ export const convertToCocoDateset = (
         );
         const area = width * height;
         const bbox = [x, y, width, height];
+        kp_box = bbox;
+        kp_area = width * height;
         Object.assign(newAnnotation, { area, bbox });
       }
 
@@ -138,8 +143,8 @@ export const convertToCocoDateset = (
         Object.assign(newAnnotation, {
           keypoints,
           num_keypoints,
-          area: 0,
-          bbox: [0, 0, 0, 0],
+          area: kp_area,
+          bbox: kp_box,
         });
         const targetCategory = cocoDataset.categories.find(
           (item) => item.name === categoryName,

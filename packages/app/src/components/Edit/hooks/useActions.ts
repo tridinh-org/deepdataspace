@@ -459,11 +459,12 @@ const useActions = ({
     aiLabels: string[],
   ) => {
     // TODO: Integrate custom templates
-    const { lines, pointNames, pointColors } = BODY_TEMPLATE;
+    const { boundingBox, lines, pointNames, pointColors } = BODY_TEMPLATE;
     const reqParams = {
       image: source,
       targets: aiLabels.join(','),
       template: {
+        boundingBox,
         lines,
         pointNames,
         pointColors,
@@ -486,7 +487,9 @@ const useActions = ({
       const skeletonObjs = objectList.filter(
         (obj) =>
           obj.type === EObjectType.Skeleton &&
-          obj.status === EObjectStatus.Checked,
+          obj.status === EObjectStatus.Checked &&
+          obj?.conf &&
+          obj.conf > 0.15,
       );
       if (skeletonObjs.length > 0) {
         const annotations = translateObjectsToAnnotations(
@@ -516,8 +519,12 @@ const useActions = ({
         const { objects } = result;
 
         if (objects && objects.length > 0) {
-          const skeletonObjs = objects.map((obj) => {
+          let skeletonObjs: IAnnotationObject[] = [];
+          objects.map((obj) => {
             let { categoryName, boundingBox, points, conf } = obj;
+            if (conf < 0.25) {
+              return null;
+            }
             const newObj: IAnnotationObject = {
               label: categoryName,
               type: EObjectType.Skeleton,
@@ -544,6 +551,7 @@ const useActions = ({
                 },
               });
             }
+            skeletonObjs.push(newObj);
             return newObj;
           });
 

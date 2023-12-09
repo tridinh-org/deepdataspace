@@ -10,8 +10,8 @@ FROM python:3.10
 
 WORKDIR /dds/source
 COPY . ./
-COPY --from=frontend-builder /frontend/packages_v060/app/dist ./deepdataspace/server/static
-COPY --from=frontend-builder /frontend/packages_v060/app/dist/index.html ./deepdataspace/server/templates/index.html
+COPY --from=frontend-builder /frontend/packages/app/dist ./deepdataspace/server/static
+COPY --from=frontend-builder /frontend/packages/app/dist/index.html ./deepdataspace/server/templates/index.html
 RUN mkdir /dds/datasets && \
     mkdir /dds/samples && \
     python3 -m pip install -r requirements.txt && \
